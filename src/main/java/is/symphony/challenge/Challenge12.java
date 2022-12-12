@@ -15,11 +15,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Challenge121 {
+public class Challenge12 {
 
-    /*public static void main(final String[] args) throws IOException {
-        System.out.println(new Challenge121().execute("src/main/resources/input12.txt", 'S'));
-        System.out.println(new Challenge121().execute("src/main/resources/input12.txt", 'a'));
+    public static void main(final String[] args) throws IOException {
+        System.out.println(new Challenge12().execute("src/main/resources/input12.txt", 'S'));
+        System.out.println(new Challenge12().execute("src/main/resources/input12.txt", 'a'));
     }
 
     private Integer execute(final String filePath, final Character character) throws IOException {
@@ -100,5 +100,5 @@ public class Challenge121 {
         final AtomicInteger atomicInteger = new AtomicInteger(0);
 
         return stream.map(value -> Tuples.of(atomicInteger.getAndIncrement(), value));
-    }*/
+    }
 }
