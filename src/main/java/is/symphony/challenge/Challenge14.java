@@ -30,8 +30,8 @@ public class Challenge14 {
         try (final Stream<String> lines = (Files.lines(Paths.get(filePath)))) {
             final List<Tuple2<Integer, Integer>> rocks = lines.flatMap(this::getRockPositions).toList();
 
+            final int maxX = rocks.stream().mapToInt(Tuple2::getT2).max().orElse(0);
             int minY = rocks.stream().mapToInt(Tuple2::getT1).min().orElse(0);
-            int maxX = rocks.stream().mapToInt(Tuple2::getT2).max().orElse(0);
             int maxY = rocks.stream().mapToInt(Tuple2::getT1).max().orElse(0);
 
             if (floor != null && floor > 0) {
@@ -39,7 +39,7 @@ public class Challenge14 {
                 maxY += maxX + floor;
             }
 
-            int[] sourcePosition = new int[] {0, 500 - minY};
+            final int[] sourcePosition = new int[] {0, 500 - minY};
 
             final List<List<Character>> matrix = initializeMatrix(maxX, maxY - minY);
 
