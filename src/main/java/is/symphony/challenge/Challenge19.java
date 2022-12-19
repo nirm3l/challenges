@@ -85,7 +85,6 @@ public class Challenge19 {
             });
 
             robotCounters.put(blueprint.getRobot(Currency.ORE), 1);
-
         }
 
         private Collector collect() {
@@ -106,7 +105,7 @@ public class Challenge19 {
         }
 
         private void optimise(int minutesLeft) {
-            int maxOreCost = blueprint.getRobots().stream().map(robot -> robot.getCost()
+            final int maxOreCost = blueprint.getRobots().stream().map(robot -> robot.getCost()
                     .getOrDefault(Currency.ORE, 0)).mapToInt(i -> i).max().orElseThrow();
 
             final Robot oreRobot = blueprint.getRobot(Currency.ORE);
@@ -126,19 +125,19 @@ public class Challenge19 {
                 robotCounters.put(obsidianRobot, geodeRobot.getCost().get(Currency.OBSIDIAN));
             }
 
-            int newOre = minutesLeft * maxOreCost - robotCounters.get(oreRobot) * (minutesLeft - 1);
+            final int newOre = minutesLeft * maxOreCost - robotCounters.get(oreRobot) * (minutesLeft - 1);
 
             if (costs.get(Currency.ORE) > newOre) {
                 costs.put(Currency.ORE, newOre);
             }
 
-            int newClay = minutesLeft * obsidianRobot.getCost().get(Currency.CLAY) - robotCounters.get(clayRobot) * (minutesLeft - 1);
+            final int newClay = minutesLeft * obsidianRobot.getCost().get(Currency.CLAY) - robotCounters.get(clayRobot) * (minutesLeft - 1);
 
             if (costs.get(Currency.CLAY) > newClay) {
                 costs.put(Currency.CLAY, newClay);
             }
 
-            int newObsidian = minutesLeft * geodeRobot.getCost().get(Currency.OBSIDIAN) - robotCounters.get(obsidianRobot) * (minutesLeft - 1);
+            final int newObsidian = minutesLeft * geodeRobot.getCost().get(Currency.OBSIDIAN) - robotCounters.get(obsidianRobot) * (minutesLeft - 1);
 
             if (costs.get(Currency.OBSIDIAN) > newObsidian) {
                 costs.put(Currency.OBSIDIAN, newObsidian);
@@ -184,15 +183,6 @@ public class Challenge19 {
         @Override
         public int hashCode() {
             return Objects.hash(robotCounters, costs, minute, blueprint.getId());
-        }
-
-        @Override
-        public String toString() {
-            return "Collector{" +
-                    "robots=" + robotCounters +
-                    ", money=" + costs +
-                    ", minute=" + minute +
-                    '}';
         }
     }
 
@@ -256,14 +246,6 @@ public class Challenge19 {
         public Robot getRobot(final Currency currency) {
             return robots.get(currency);
         }
-
-        @Override
-        public String toString() {
-            return "Blueprint{" +
-                    "id=" + id +
-                    ", robots=" + robots +
-                    '}';
-        }
     }
 
     static class Robot {
@@ -285,14 +267,6 @@ public class Challenge19 {
         public Map<Currency, Integer> getCost() {
             return cost;
         }
-
-        @Override
-        public String toString() {
-            return "Robot{" +
-                    "currency=" + currency +
-                    ", cost=" + cost +
-                    '}';
-        }
     }
 
     enum Currency {
@@ -310,13 +284,6 @@ public class Challenge19 {
 
         static Currency getByName(final String name) {
             return Arrays.stream(Currency.values()).filter(currency -> currency.getName().equals(name)).findFirst().orElse(null);
-        }
-
-        @Override
-        public String toString() {
-            return "Currency{" +
-                    "name='" + name + '\'' +
-                    '}';
         }
     }
 }
