@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -41,30 +42,29 @@ public class Challenge16 {
 
             graph.calculateDistances();
 
+            final Node rootNode = graph.getNode("AA");
+
             return elephant ?
                     getMaxFlowWithElephant(graph, new LinkedList<>(List.of(graph.getNode("AA"))), minutesLimit)
-                    : getMaxFlow(graph, new LinkedList<>(List.of(graph.getNode("AA"))), minutesLimit);
+                    : getMaxFlow(graph, () -> Stream.of(rootNode), rootNode, minutesLimit);
         }
     }
 
-    private Integer getMaxFlow(final Graph graph, final LinkedList<Node> nodes, final Integer minutes) {
-        final AtomicInteger max = new AtomicInteger();
-        final Set<Node> ignore = new HashSet<>(nodes);
-
-        graph.getFlowNodes().stream().filter(node -> !ignore.contains(node)).forEach(node -> {
-            int rem = minutes - (1 + graph.getDistances().get(nodes.getLast()).get(node));
+    private Integer getMaxFlow(final Graph graph, final Supplier<Stream<Node>> nodes, Node lastNode, final Integer minutes) {
+        return graph.getFlowNodes().stream()
+                .filter(node -> nodes.get().noneMatch(n -> n.equals(node)))
+                .flatMap(node -> {
+            int rem = minutes - (1 + graph.getDistances().get(lastNode).get(node));
 
             if (rem >= 0) {
-                max.set(Math.max(max.get(), rem * node.getFlow() + getMaxFlow(
-                        graph, Stream.concat(nodes.stream(), Stream.of(node))
-                                .collect(Collectors.toCollection(LinkedList::new)), rem)));
+                return Stream.of(rem * node.getFlow() + getMaxFlow(graph, () -> Stream.concat(nodes.get(), Stream.of(node)), node, rem));
             }
-        });
 
-        return max.get();
+            return Stream.empty();
+        }).mapToInt(i -> i).max().orElse(0);
     }
 
-    private void dfs(final Graph graph, final LinkedList<Node> nodes, final Integer minutes, final List<List<Node>> paths) {
+    private List<List<Node>> dfs(final Graph graph, final LinkedList<Node> nodes, final Integer minutes, final List<List<Node>> paths) {
         paths.add(nodes);
 
         final Set<Node> ignore = new HashSet<>(nodes);
@@ -77,15 +77,18 @@ public class Challenge16 {
                         .collect(Collectors.toCollection(LinkedList::new)), rem, paths);
             }
         });
+
+        return paths;
+    }
+
+    private List<List<Node>> dfs(final Graph graph, final LinkedList<Node> nodes, final Integer minutes) {
+        return dfs(graph, nodes, minutes, new ArrayList<>());
     }
 
     private Integer getMaxFlowWithElephant(final Graph graph, final LinkedList<Node> nodes, final Integer minutes) {
-        final List<List<Node>> paths = new ArrayList<>();
-        final List<Tuple2<Integer, List<Node>>> map = new ArrayList<>();
+        final List<List<Node>> paths = dfs(graph, nodes, minutes);
 
-        dfs(graph, nodes, minutes, paths);
-
-        paths.forEach(path -> {
+        final List<Tuple2<Integer, List<Node>>> map = paths.stream().map(path -> {
             final AtomicReference<Node> currentRef = new AtomicReference<>(path.get(0));
 
             final AtomicInteger timeCounter = new AtomicInteger(minutes);
@@ -97,24 +100,17 @@ public class Challenge16 {
                 currentRef.set(node);
             });
 
-            map.add(Tuples.of(counter.get(), path.stream().skip(1).collect(Collectors.toList())));
-        });
+            return Tuples.of(counter.get(), path.stream().skip(1).collect(Collectors.toList()));
+        }).sorted(Comparator.comparing((Tuple2<Integer, List<Node>> o) -> o.getT1()).reversed()).toList();
 
-        map.sort(Comparator.comparing((Tuple2<Integer, List<Node>> o) -> o.getT1()).reversed());
-
-        final AtomicInteger max = new AtomicInteger();
-
-        IntStream.range(0, map.size() - 1).boxed()
-                .takeWhile(i -> map.get(i).getT1() + map.get(i + 1).getT1() >= max.get())
-                .forEach(i -> {
+        return IntStream.range(0, map.size() - 1)
+                .map(i -> {
                     int elephant = IntStream.range(i + 1, paths.size()).boxed()
                             .filter(j -> map.get(i).getT2().stream().noneMatch(map.get(j).getT2()::contains))
                             .map(j -> map.get(j).getT1()).findFirst().orElse(0);
 
-                    max.set(Math.max(max.get(), map.get(i).getT1() + elephant));
-                });
-
-        return max.get();
+                    return map.get(i).getT1() + elephant;
+                }).max().orElseThrow();
     }
 
     private Optional<Tuple2<Node, Set<String>>> getNodeWithReferences(final String line) {
