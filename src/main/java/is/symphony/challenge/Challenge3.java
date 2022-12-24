@@ -5,6 +5,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Challenge3 {
@@ -18,18 +19,19 @@ public class Challenge3 {
         try (final Stream<String> lines = (Files.lines(Paths.get(filePath)))) {
             return lines
                     .parallel()
-                    .map(line -> {
+                    .flatMap(line -> {
                         final String secondPart = line.substring(line.length() / 2);
 
-                        for (int i = 0; i < line.length() / 2; i++) {
-                            char c = line.charAt(i);
+                        return IntStream.range(0, line.length() / 2).boxed()
+                                .flatMap(i -> {
+                                    char c = line.charAt(i);
 
-                            if (secondPart.contains(String.valueOf(c))) {
-                                return c;
-                            }
-                        }
+                                    if (secondPart.contains(String.valueOf(c))) {
+                                        return Stream.of(c);
+                                    }
 
-                        throw new IllegalStateException("Cannot find item, bad input file!");
+                                    return Stream.empty();
+                                }).findFirst().stream();
                     })
                     .map(this::calculatePriority)
                     .mapToInt(Integer::intValue).sum();
@@ -41,23 +43,24 @@ public class Challenge3 {
             return Flux.fromStream(lines)
                     .window(3)
                     .flatMap(Flux::collectList)
-                    .map(group -> {
+                    .toStream()
+                    .flatMap(group -> {
                         final String firstLine = group.get(0);
                         final String secondLine = group.get(1);
                         final String thirdLine = group.get(2);
 
-                        for (int i = 0; i < firstLine.length(); i++) {
-                            final String currentChar = String.valueOf(firstLine.charAt(i));
+                        return IntStream.range(0, firstLine.length()).boxed()
+                                .flatMap(i -> {
+                                    final String currentChar = String.valueOf(firstLine.charAt(i));
 
-                            if (secondLine.contains(currentChar) && thirdLine.contains(currentChar)) {
-                                return currentChar.charAt(0);
-                            }
-                        }
+                                    if (secondLine.contains(currentChar) && thirdLine.contains(currentChar)) {
+                                        return Stream.of(currentChar.charAt(0));
+                                    }
 
-                        throw new IllegalStateException("Cannot find item, bad input file!");
+                                    return Stream.empty();
+                                }).findFirst().stream();
                     })
                     .map(this::calculatePriority)
-                    .toStream()
                     .mapToInt(Integer::intValue).sum();
         }
     }
