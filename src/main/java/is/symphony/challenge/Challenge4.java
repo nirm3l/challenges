@@ -18,10 +18,10 @@ public class Challenge4 {
             return lines
                     .parallel()
                     .map(value -> {
-                        String[] pairs = value.split(",");
+                        final String[] pairs = value.split(",");
 
-                        Integer[] tuple1 = Arrays.stream(pairs[0].split("-")).map(Integer::parseInt).toArray(Integer[]::new);
-                        Integer[] tuple2 = Arrays.stream(pairs[1].split("-")).map(Integer::parseInt).toArray(Integer[]::new);
+                        final Integer[] tuple1 = Arrays.stream(pairs[0].split("-")).map(Integer::parseInt).toArray(Integer[]::new);
+                        final Integer[] tuple2 = Arrays.stream(pairs[1].split("-")).map(Integer::parseInt).toArray(Integer[]::new);
 
                         if (fullOverlap) {
                             if (tuple1[0] >= tuple2[0] && tuple1[1] <= tuple2[1] || tuple2[0] >= tuple1[0] && tuple2[1] <= tuple1[1]) {
