@@ -8,8 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -27,50 +27,44 @@ public class Challenge12 {
             final Tuple2<List<List<Character>>, Tuple2<Integer, Integer>> matrixInfo = readMatrix(lines);
 
             // Go from end to start
-            return findShortestPathSize(matrixInfo.getT1(), matrixInfo.getT2(), character).stream().mapToInt(i -> i).min()
-                    .orElseThrow(() -> new IllegalStateException("No path found"));
+            return findShortestPathSize(matrixInfo.getT1(), matrixInfo.getT2(), character);
         }
     }
-    private Optional<Integer> findShortestPathSize(
+
+    private Integer findShortestPathSize(
             final List<List<Character>> matrix, final Tuple2<Integer, Integer> start, final Character endCharacter) {
         final Set<Tuple2<Integer, Integer>> visited = new HashSet<>();
-        final Set<Tuple2<Integer, Integer>> next = new HashSet<>();
-
         visited.add(start);
-        next.add(start);
+
+        final AtomicReference<Set<Tuple2<Integer, Integer>>> next = new AtomicReference<>(Set.of(start));
 
         return Stream.iterate(1, counter -> counter + 1)
-                .flatMap(counter ->
-                        next.stream()
-                                .collect(Collectors.collectingAndThen(Collectors.toList(), current -> {
-                                    if (current.isEmpty()) {
-                                        return Stream.of(Integer.MAX_VALUE);
-                                    }
+                .filter(counter -> {
+                    final AtomicBoolean stop = new AtomicBoolean();
 
-                                    next.clear();
+                    final Set<Tuple2<Integer, Integer>> nextSet = next.get().stream()
+                            .takeWhile(position -> !stop.get())
+                            .flatMap(position -> {
+                                final Character currentChar = Stream.of(matrix.get(position.getT1()).get(position.getT2()))
+                                        .map(c -> c.equals('E') ? 'z' : c).findFirst().get();
 
-                                    return current.stream().flatMap(position -> {
-                                        final Character currentChar = Stream.of(matrix.get(position.getT1()).get(position.getT2()))
-                                                .map(c -> c.equals('E') ? 'z' : c).findFirst().get();
+                                return findNeighbours(matrix, position)
+                                        .takeWhile(neighbour -> !stop.get())
+                                        .filter(neighbour -> {
+                                            final Character neighbourChar = matrix.get(neighbour.getT1()).get(neighbour.getT2());
 
-                                        return findNeighbours(matrix, position)
-                                                .filter(neighbour -> {
-                                                    final Character neighbourChar = matrix.get(neighbour.getT1()).get(neighbour.getT2());
+                                            if (List.of('b', 'a').contains(currentChar) && neighbourChar.equals(endCharacter)) {
+                                                stop.set(true);
+                                            }
 
-                                                    if (List.of('b', 'a').contains(currentChar) && neighbourChar.equals(endCharacter)) {
-                                                        next.clear();
+                                            return neighbourChar + 1 >= currentChar && visited.add(neighbour);
+                                        });
+                            }).collect(Collectors.toSet());
 
-                                                        return true;
-                                                    }
+                    next.set(nextSet);
 
-                                                    if (neighbourChar + 1 >= currentChar && visited.add(neighbour)) {
-                                                        next.add(neighbour);
-                                                    }
-
-                                                    return false;
-                                                }).map(neighbour -> counter).findFirst().stream();
-                                    });
-                                }))).takeWhile(counter -> next.isEmpty()).findFirst();
+                    return stop.get();
+                }).findFirst().orElseThrow();
     }
 
     private Stream<Tuple2<Integer, Integer>> findNeighbours(final List<List<Character>> matrix, final Tuple2<Integer, Integer> point) {

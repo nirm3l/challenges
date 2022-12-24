@@ -1,11 +1,12 @@
 package is.symphony.challenge;
 
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,30 +49,37 @@ public class Challenge18 {
             else {
                 if (!in.contains(loc)) {
                     final Set<List<Integer>> seen = new HashSet<>();
-                    final Deque<List<Integer>> queue = new ArrayDeque<>(List.of(loc));
 
-                    while (!queue.isEmpty()) {
-                        final List<Integer> currentLoc = queue.pollFirst();
+                    final AtomicReference<Set<List<Integer>>> next = new AtomicReference<>(Set.of(loc));
+                    final AtomicBoolean stop = new AtomicBoolean();
 
-                        if (locations.contains(currentLoc) || seen.contains(currentLoc)) {
-                            continue;
-                        }
+                    Stream.generate(() -> !stop.get() && !next.get().isEmpty())
+                            .takeWhile(condition -> condition)
+                            .forEach(i -> {
+                                final Set<List<Integer>> nextSet = next.get().stream()
+                                        .takeWhile(currentLoc -> !stop.get())
+                                        .filter(currentLoc -> !locations.contains(currentLoc) && !seen.contains(currentLoc))
+                                        .peek(seen::add)
+                                        .filter(currentLoc -> {
+                                            if (seen.size() > 5000) {
+                                                out.addAll(seen);
+                                                counter.incrementAndGet();
 
-                        seen.add(currentLoc);
+                                                stop.set(true);
 
-                        if (seen.size() > 5000) {
-                            out.addAll(seen);
-                            counter.incrementAndGet();
+                                                return false;
+                                            }
 
-                            return;
-                        }
-                        else {
-                            queue.addAll(Arrays.stream(Direction.values())
-                                    .map(direction -> direction.moveAndGet(currentLoc)).toList());
-                        }
+                                            return true;
+                                        }).flatMap(currentLoc -> Arrays.stream(Direction.values())
+                                                .map(direction -> direction.moveAndGet(currentLoc))).collect(Collectors.toSet());
+
+                                next.set(nextSet);
+                            });
+
+                    if (!stop.get()) {
+                        in.addAll(seen);
                     }
-
-                    in.addAll(seen);
                 }
             }
         });

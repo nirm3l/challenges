@@ -67,16 +67,15 @@ public class Challenge16 {
     private List<List<Node>> dfs(final Graph graph, final LinkedList<Node> nodes, final Integer minutes, final List<List<Node>> paths) {
         paths.add(nodes);
 
-        final Set<Node> ignore = new HashSet<>(nodes);
+        graph.getFlowNodes().stream().filter(node -> !nodes.contains(node))
+                .forEach(node -> {
+                    int rem = minutes - (1 + graph.getDistances().get(nodes.getLast()).get(node));
 
-        graph.getFlowNodes().stream().filter(node -> !ignore.contains(node)).forEach(node -> {
-            int rem = minutes - (1 + graph.getDistances().get(nodes.getLast()).get(node));
-
-            if (rem >= 0) {
-                dfs(graph, Stream.concat(nodes.stream(), Stream.of(node))
-                        .collect(Collectors.toCollection(LinkedList::new)), rem, paths);
-            }
-        });
+                    if (rem >= 0) {
+                        dfs(graph, Stream.concat(nodes.stream(), Stream.of(node))
+                                .collect(Collectors.toCollection(LinkedList::new)), rem, paths);
+                    }
+                });
 
         return paths;
     }
