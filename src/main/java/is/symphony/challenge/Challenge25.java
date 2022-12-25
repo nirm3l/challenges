@@ -43,8 +43,8 @@ public class Challenge25 {
 
         return IntStream.iterate(0, i -> current.get() > 0, i -> i + 1).boxed()
                 .map(i -> {
-                    long value = current.get();
-                    long mod = value % 5;
+                    final long value = current.get();
+                    final long mod = value % 5;
 
                     if (mod == 3) {
                         current.set((value + 2) / 5);
