@@ -23,7 +23,7 @@ public class Challenge25 {
     private long snafuToDecimal(final String snafu) {
         final AtomicLong base = new AtomicLong(1);
 
-        return IntStream.rangeClosed(0, snafu.length() - 1)
+        return IntStream.range(0, snafu.length())
                 .mapToLong(i -> {
                     final String c = snafu.substring(snafu.length() - i - 1, snafu.length() - i);
 
