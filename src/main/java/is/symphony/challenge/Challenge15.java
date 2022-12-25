@@ -60,22 +60,16 @@ public class Challenge15 {
 
     private List<Tuple3<Tuple2<Long, Long>, Tuple2<Long, Long>, Long>> getSensorsAndBeaconsWithDistances(final String filePath) throws IOException {
         try (final Stream<String> lines = (Files.lines(Paths.get(filePath)))) {
-            return lines.map(this::getSensorAndBeacon)
-                    .filter(Objects::nonNull)
+            return lines.flatMap(line -> getSensorAndBeacon(line).stream())
                     .map(pair -> Tuples.of(pair.getT1(), pair.getT2(), calculateManhattanDistance(pair.getT1(), pair.getT2()))).collect(Collectors.toList());
         }
     }
 
-    private Tuple2<Tuple2<Long, Long>, Tuple2<Long, Long>> getSensorAndBeacon(final String line) {
-        final Matcher matcher = PATTERN.matcher(line);
-
-        if (matcher.find()) {
-            return Tuples.of(
-                    Tuples.of(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2))),
-                    Tuples.of(Long.parseLong(matcher.group(3)), Long.parseLong(matcher.group(4))));
-        }
-
-        return null;
+    private Optional<Tuple2<Tuple2<Long, Long>, Tuple2<Long, Long>>> getSensorAndBeacon(final String line) {
+        return Stream.iterate(PATTERN.matcher(line), Matcher::find, m -> m)
+                .map(matcher -> Tuples.of(
+                        Tuples.of(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2))),
+                        Tuples.of(Long.parseLong(matcher.group(3)), Long.parseLong(matcher.group(4))))).findFirst();
     }
 
     private long calculateManhattanDistance(final Tuple2<Long, Long> pos1, final Tuple2<Long, Long> pos2) {

@@ -64,28 +64,27 @@ public class Challenge5 {
     }
 
     private void handleMove(final List<Stack<String>> matrix, final String line, boolean multiple) {
-        final Matcher matcher = MOVE_PATTERN.matcher(line);
+        Stream.iterate(MOVE_PATTERN.matcher(line), Matcher::find, m -> m)
+                .forEach(matcher -> {
+                    final int count = Integer.parseInt(matcher.group(1));
+                    final int from = Integer.parseInt(matcher.group(2));
+                    final int to = Integer.parseInt(matcher.group(3));
 
-        while (matcher.find()) {
-            final int count = Integer.parseInt(matcher.group(1));
-            final int from = Integer.parseInt(matcher.group(2));
-            final int to = Integer.parseInt(matcher.group(3));
+                    for (int i = 0; i < count; i++) {
+                        final String crate = matrix.get(from - 1).pop();
 
-            for (int i = 0; i < count; i++) {
-                final String crate = matrix.get(from - 1).pop();
+                        if (!multiple) {
+                            matrix.get(to - 1).push(crate);
+                        }
+                        else {
+                            tempStack.add(0, crate);
+                        }
+                    }
 
-                if (!multiple) {
-                    matrix.get(to - 1).push(crate);
-                }
-                else {
-                    tempStack.add(0, crate);
-                }
-            }
-
-            if (multiple) {
-                matrix.get(to - 1).addAll(tempStack);
-                tempStack.clear();
-            }
-        }
+                    if (multiple) {
+                        matrix.get(to - 1).addAll(tempStack);
+                        tempStack.clear();
+                    }
+                });
     }
 }

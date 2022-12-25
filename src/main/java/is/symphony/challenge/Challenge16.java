@@ -113,15 +113,12 @@ public class Challenge16 {
     }
 
     private Optional<Tuple2<Node, Set<String>>> getNodeWithReferences(final String line) {
-        final Matcher matcher = PATTERN.matcher(line);
+        return Stream.iterate(PATTERN.matcher(line), Matcher::find, m -> m)
+                .map(matcher -> {
+                    final Node node = new Node(matcher.group(1), Integer.parseInt(matcher.group(2)));
 
-        return Optional.of(matcher.find()).flatMap(success -> {
-            if (!success) return Optional.empty();
-
-            final Node node = new Node(matcher.group(1), Integer.parseInt(matcher.group(2)));
-
-            return Optional.of(Tuples.of(node, Arrays.stream(matcher.group(3).split(", ")).collect(Collectors.toSet())));
-        });
+                    return Tuples.of(node, Arrays.stream(matcher.group(3).split(", ")).collect(Collectors.toSet()));
+                }).findFirst();
     }
 
     static class Graph {
