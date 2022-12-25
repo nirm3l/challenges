@@ -9,6 +9,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Challenge5 {
@@ -25,18 +26,17 @@ public class Challenge5 {
         try (final Stream<String> lines = (Files.lines(Paths.get(filePath)))) {
             return lines.reduce(new ArrayList<Stack<String>>(), (matrix, value) -> {
                 if (value.contains("[")) {
-                    value += " ";
+                    final String finalValue = value + " ";
 
-                    final int size = initializeMatrix(matrix, value.length());
+                    IntStream.range(0, initializeMatrix(matrix, finalValue.length()))
+                            .forEach(i -> {
+                                final int position = i * 4;
+                                final String crate = cleanCrate(finalValue.substring(position, position + 4));
 
-                    for (int i = 0; i < size; i++) {
-                        final int position = i * 4;
-                        final String crate = cleanCrate(value.substring(position, position + 4));
-
-                        if (!crate.isEmpty()) {
-                            matrix.get(i).add(0, crate);
-                        }
-                    }
+                                if (!crate.isEmpty()) {
+                                    matrix.get(i).add(0, crate);
+                                }
+                            });
                 }
                 else {
                     handleMove(matrix, value, multiple);
@@ -55,9 +55,8 @@ public class Challenge5 {
         if (matrix.size() == 0) {
             final int size = length / 4;
 
-            for (int i = 0; i < size; i++) {
-                matrix.add(new Stack<>());
-            }
+            IntStream.range(0, size)
+                    .forEach(i -> matrix.add(new Stack<>()));
         }
 
         return matrix.size();
@@ -70,16 +69,17 @@ public class Challenge5 {
                     final int from = Integer.parseInt(matcher.group(2));
                     final int to = Integer.parseInt(matcher.group(3));
 
-                    for (int i = 0; i < count; i++) {
-                        final String crate = matrix.get(from - 1).pop();
+                    IntStream.range(0, count)
+                            .forEach(i -> {
+                                final String crate = matrix.get(from - 1).pop();
 
-                        if (!multiple) {
-                            matrix.get(to - 1).push(crate);
-                        }
-                        else {
-                            tempStack.add(0, crate);
-                        }
-                    }
+                                if (!multiple) {
+                                    matrix.get(to - 1).push(crate);
+                                }
+                                else {
+                                    tempStack.add(0, crate);
+                                }
+                            });
 
                     if (multiple) {
                         matrix.get(to - 1).addAll(tempStack);

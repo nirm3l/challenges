@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -30,13 +31,8 @@ public class Challenge8 {
 
     private List<List<Integer>> parseMatrix(final Stream<String> linesStream) {
         return linesStream.reduce(new ArrayList<>(), (currentMatrix, rowString) -> {
-            final List<Integer> row = new ArrayList<>();
-
-            for (int i = 0; i < rowString.length(); i++) {
-                row.add(Integer.parseInt(rowString.substring(i, i + 1)));
-            }
-
-            currentMatrix.add(row);
+            currentMatrix.add(IntStream.range(0, rowString.length()).boxed()
+                    .map(i -> Integer.parseInt(rowString.substring(i, i + 1))).collect(Collectors.toList()));
 
             return currentMatrix;
         }, (a, b) -> a);
@@ -45,24 +41,25 @@ public class Challenge8 {
     private Set<Tuple2<Integer, Integer>> findVisibleTrees(final List<List<Integer>> matrix) {
         final Set<Tuple2<Integer, Integer>> result = new HashSet<>();
 
-        for (int i = 0; i < matrix.size(); i++) {
-            int rowLength = matrix.get(i).size();
+        IntStream.range(0, matrix.size())
+                .forEach(i -> {
+                    final int rowLength = matrix.get(i).size();
 
-            int highestHorizontal = -1, highestVertical = -1;
+                    int highestHorizontal = -1, highestVertical = -1;
 
-            for (int j = 0; j < rowLength; j++) {
-                highestHorizontal = checkIfTreeIsVisible(matrix, i, j, highestHorizontal, result);
-                highestVertical = checkIfTreeIsVisible(matrix, j, i, highestVertical, result);
-            }
+                    for (int j = 0; j < rowLength; j++) {
+                        highestHorizontal = checkIfTreeIsVisible(matrix, i, j, highestHorizontal, result);
+                        highestVertical = checkIfTreeIsVisible(matrix, j, i, highestVertical, result);
+                    }
 
-            highestHorizontal = -1;
-            highestVertical = -1;
+                    highestHorizontal = -1;
+                    highestVertical = -1;
 
-            for (int j = rowLength - 1; j >=0; j--) {
-                highestHorizontal = checkIfTreeIsVisible(matrix, i, j, highestHorizontal, result);
-                highestVertical = checkIfTreeIsVisible(matrix, j, i, highestVertical, result);
-            }
-        }
+                    for (int j = rowLength - 1; j >=0; j--) {
+                        highestHorizontal = checkIfTreeIsVisible(matrix, i, j, highestHorizontal, result);
+                        highestVertical = checkIfTreeIsVisible(matrix, j, i, highestVertical, result);
+                    }
+                });
 
         return result;
     }

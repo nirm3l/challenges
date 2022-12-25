@@ -34,11 +34,8 @@ public class Challenge16 {
             lines.flatMap(value -> getNodeWithReferences(value).stream())
                     .peek(nodeWithRefs -> graph.addNode(nodeWithRefs.getT1()))
                     .collect(Collectors.toSet())
-                    .forEach(nodeRefs -> {
-                        for (final String ref : nodeRefs.getT2()) {
-                            nodeRefs.getT1().addReference(graph.getNode(ref));
-                        }
-                    });
+                    .forEach(nodeRefs -> nodeRefs.getT2()
+                            .forEach(ref -> nodeRefs.getT1().addReference(graph.getNode(ref))));
 
             graph.calculateDistances();
 
@@ -137,17 +134,15 @@ public class Challenge16 {
         }
 
         public void calculateDistances() {
-            for (final Node node : nodes.values()) {
+            nodes.values().forEach(node -> {
                 if (!distances.containsKey(node)) {
                     distances.put(node, new HashMap<>());
                 }
 
                 distances.get(node).put(node, 0);
 
-                for (final Node child : node.getReferences()) {
-                    distances.get(node).put(child, 1);
-                }
-            }
+                node.getReferences().forEach(child -> distances.get(node).put(child, 1));
+            });
 
             nodes.values().forEach(
                     k -> nodes.values().forEach(

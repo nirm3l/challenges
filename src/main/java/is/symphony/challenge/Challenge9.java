@@ -43,38 +43,39 @@ public class Challenge9 {
 
     private LinkedList<LinkedList<Tuple2<Integer, Integer>>> playMove(
             final LinkedList<LinkedList<Tuple2<Integer, Integer>>> moveCollections, final Tuple2<Direction, Integer> move) {
-        for (int i = 0; i < move.getT2(); i++) {
-            final LinkedList<Tuple2<Integer, Integer>> currentHead = moveCollections.getFirst();
+        IntStream.range(0, move.getT2())
+                .forEach(i -> {
+                    final LinkedList<Tuple2<Integer, Integer>> currentHead = moveCollections.getFirst();
 
-            Tuple2<Integer, Integer> newPosition = applyDelta(currentHead.getLast(), move.getT1().getDelta());
+                    Tuple2<Integer, Integer> newPosition = applyDelta(currentHead.getLast(), move.getT1().getDelta());
 
-            currentHead.add(newPosition);
+                    currentHead.add(newPosition);
 
-            for (int j = 1; j < moveCollections.size(); j++) {
-                final LinkedList<Tuple2<Integer, Integer>> currentTail = moveCollections.get(j);
+                    for (int j = 1; j < moveCollections.size(); j++) {
+                        final LinkedList<Tuple2<Integer, Integer>> currentTail = moveCollections.get(j);
 
-                final Tuple2<Integer, Integer> lastTailMove = currentTail.getLast();
+                        final Tuple2<Integer, Integer> lastTailMove = currentTail.getLast();
 
-                int deltaX = newPosition.getT1() - lastTailMove.getT1();
-                int deltaY = newPosition.getT2() - lastTailMove.getT2();
+                        int deltaX = newPosition.getT1() - lastTailMove.getT1();
+                        int deltaY = newPosition.getT2() - lastTailMove.getT2();
 
-                if (Math.abs(deltaX) < 2 && Math.abs(deltaY) < 2) {
-                    break;
-                }
+                        if (Math.abs(deltaX) < 2 && Math.abs(deltaY) < 2) {
+                            break;
+                        }
 
-                if (Math.abs(deltaX) == 2) {
-                    deltaX = deltaX / 2;
-                }
+                        if (Math.abs(deltaX) == 2) {
+                            deltaX = deltaX / 2;
+                        }
 
-                if (Math.abs(deltaY) == 2) {
-                    deltaY = deltaY / 2;
-                }
+                        if (Math.abs(deltaY) == 2) {
+                            deltaY = deltaY / 2;
+                        }
 
-                newPosition = applyDelta(lastTailMove, Tuples.of(deltaX, deltaY));
+                        newPosition = applyDelta(lastTailMove, Tuples.of(deltaX, deltaY));
 
-                currentTail.add(newPosition);
-            }
-        }
+                        currentTail.add(newPosition);
+                    }
+                });
 
         return moveCollections;
     }

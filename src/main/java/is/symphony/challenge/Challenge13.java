@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Challenge13 {
@@ -84,41 +85,40 @@ public class Challenge13 {
     }
 
     private Boolean checkOrder(final List list1, final List list2) {
-        for (int i = 0; i < list1.size(); i++) {
-            Object value1 = list1.get(i);
+        return IntStream.range(0, list1.size()).boxed()
+                .flatMap(i -> {
+                    Object value1 = list1.get(i);
 
-            if (list2.size() <= i) {
-                return false;
-            }
+                    if (list2.size() <= i) {
+                        return Stream.of(false);
+                    }
 
-            Object value2 = list2.get(i);
+                    Object value2 = list2.get(i);
 
-            if (!value1.getClass().equals(value2.getClass())) {
-                if (value1 instanceof Integer) {
-                    value1 = List.of(value1);
-                }
-                else if (value2 instanceof Integer) {
-                    value2 = List.of(value2);
-                }
-            }
+                    if (!value1.getClass().equals(value2.getClass())) {
+                        if (value1 instanceof Integer) {
+                            value1 = List.of(value1);
+                        }
+                        else if (value2 instanceof Integer) {
+                            value2 = List.of(value2);
+                        }
+                    }
 
-            if (!value1.getClass().equals(Integer.class) && !value2.getClass().equals(Integer.class)) {
-                final Boolean result = checkOrder((List) value1, (List) value2);
+                    if (!value1.getClass().equals(Integer.class) && !value2.getClass().equals(Integer.class)) {
+                        final Boolean result = checkOrder((List) value1, (List) value2);
 
-                if (result != null) {
-                    return result;
-                }
+                        if (result != null) {
+                            return Stream.of(result);
+                        }
 
-                continue;
-            }
+                        return Stream.empty();
+                    }
 
-            if ((int) value1 == (int) value2) {
-                continue;
-            }
+                    if ((int) value1 == (int) value2) {
+                        return Stream.empty();
+                    }
 
-            return (int) value1 < (int) value2;
-        }
-
-        return list1.size() < list2.size() ? true : null;
+                    return Stream.of((int) value1 < (int) value2);
+                }).findFirst().orElse(list1.size() < list2.size() ? true : null);
     }
 }

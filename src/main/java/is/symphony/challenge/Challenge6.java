@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Challenge6 {
@@ -27,35 +28,37 @@ public class Challenge6 {
     }
 
     private int quickSolution(final String line, final int numOfCharacters) {
-        for (int i = numOfCharacters; i < line.length(); i++) {
-            final String current = line.substring(i - numOfCharacters, i);
+        return IntStream.range(numOfCharacters, line.length()).boxed()
+                .flatMap(i -> {
+                    final String current = line.substring(i - numOfCharacters, i);
 
-            if (current.length() == (int)current.chars().distinct().count()) {
-                return i;
-            }
-        }
+                    if (current.length() == (int)current.chars().distinct().count()) {
+                        return Stream.of(i);
+                    }
 
-        throw new IllegalStateException("Invalid input!");
+                    return Stream.empty();
+                }).findFirst().orElseThrow();
     }
 
     private int goodSolution(final String line, final int numOfCharacters) {
-        for (int i = 0; i < line.length(); i++) {
-            int size = Math.min(i, numOfCharacters);
+        return IntStream.range(0, line.length()).boxed()
+                .flatMap(i -> {
+                    int size = Math.min(i, numOfCharacters);
 
-            final String currentString = line.substring(i - size, i);
+                    final String currentString = line.substring(i - size, i);
 
-            checkDuplicate(line.charAt(i), currentString);
+                    checkDuplicate(line.charAt(i), currentString);
 
-            if (i >= numOfCharacters) {
-                removeLastIfNeeded(currentString.charAt(0));
-            }
+                    if (i >= numOfCharacters) {
+                        removeLastIfNeeded(currentString.charAt(0));
+                    }
 
-            if (size == numOfCharacters && duplicatesCounter.isEmpty()) {
-                return i + 1;
-            }
-        }
+                    if (size == numOfCharacters && duplicatesCounter.isEmpty()) {
+                        return Stream.of(i + 1);
+                    }
 
-        throw new IllegalStateException("Invalid input!");
+                    return Stream.empty();
+                }).findFirst().orElseThrow();
     }
 
     private void checkDuplicate(final Character current, final String stringToCheck) {
